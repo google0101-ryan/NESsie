@@ -37,6 +37,7 @@ private:
     using Instr = std::function<int()>;
     std::unordered_map<uint8_t, Instr> opcodes;
 
+    int ORA_idx(); // 0x01
     int ORA_zp0(); // 0x05
     int ASL_zp0(); // 0x06
     int ORA_imm(); // 0x09
@@ -45,6 +46,7 @@ private:
     int CLC_imp(); // 0x18
     int JSR_abs(); // 0x20
     int AND_zp0(); // 0x25
+    int PLP_imp(); // 0x28
     int AND_imm(); // 0x29
     int ROL_acc(); // 0x2a
     int BMI_rel(); // 0x30
@@ -62,12 +64,15 @@ private:
     int ROR_zp0(); // 0x66
     int PLA_imp(); // 0x68
     int ADC_imm(); // 0x69
+    int ROR_acc(); // 0x6a
+    int ADC_abs(); // 0x6d
     int SEI_imp(); // 0x78
     int STY_ZP0(); // 0x84
     int STA_ZP0(); // 0x85
     int STX_zp0(); // 0x86
     int DEY_imp(); // 0x88
     int TXA_imp(); // 0x8a
+    int STY_abs(); // 0x8a
     int STA_abs(); // 0x8d
     int STX_abs(); // 0x8e
     int BCC_rel(); // 0x90
@@ -75,6 +80,7 @@ private:
     int STA_zpx(); // 0x95
     int TYA_imp(); // 0x98
     int TXS_imp(); // 0x9a
+    int STA_abx(); // 0x9d
     int LDY_imm(); // 0xa0
     int LDX_imm(); // 0xa2
     int LDY_zp0(); // 0xa4
@@ -92,6 +98,7 @@ private:
     int DEC_zpx(); // 0xb6
     int LDA_aby(); // 0xb9
     int LDA_abx(); // 0xbd
+    int CPY_zp0(); // 0xc4
     int DEC_zp0(); // 0xc6
     int INY_imp(); // 0xc8
     int CMP_imm(); // 0xc9
@@ -100,6 +107,7 @@ private:
     int BNE_rel(); // 0xd0
     int CLD_imp(); // 0xd8
     int SBC_zp0(); // 0xe5
+    int INC_zp0(); // 0xe6
     int INX_imp(); // 0xe8
     int INC_abs(); // 0xee
     int BEQ_rel(); // 0xf0

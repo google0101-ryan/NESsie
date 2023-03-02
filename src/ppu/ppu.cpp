@@ -150,13 +150,6 @@ state:
                 uint8_t first_row = read8((bg_map_addr + tile_num) + line);
                 uint8_t second_row = read8(bg_map_addr + (tile_num+8) + line);
 
-                printf("0x%04x\n", bg_map_addr + tile_num + line);
-
-                // uint8_t pixel1 = ((first_row >> 7) & 1);
-                // pixel1 |= ((second_row >> 7) & 1) << 1;
-
-                // screen << std::to_string(pixel1);
-
                 for (int i = 7; i >= 0; i--)
                 {
                     uint8_t pixel = ((first_row >> i) & 1);
@@ -173,7 +166,7 @@ state:
     }
     else if (scanline >= 241 && scanline <= 260)
     {
-        if (scanline == 241)
+        if (scanline == 241 && cycles_elapsed == 0)
         {
             ppu_status.vblank = 1;
             screen.seekp(0);

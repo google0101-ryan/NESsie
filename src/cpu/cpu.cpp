@@ -4,6 +4,18 @@
 
 bool is_suspended = false;
 
+int CPU::ORA_idx()
+{
+    uint8_t imm = Bus::read8(pc++);
+    imm += x;
+    uint16_t addr = Bus::read16(imm);
+    a |= Bus::read8(addr);
+    SetFlag(N_FLAG, (a >> 7) & 1);
+    SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: ora ($%02x,x)\n", imm);
+    return 6;
+}
+
 int CPU::ORA_zp0()
 {
     uint8_t imm = Bus::read8(pc++);
@@ -11,6 +23,7 @@ int CPU::ORA_zp0()
     a = a | val;
     SetFlag(N_FLAG, (a >> 7) & 1);
     SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: ora $%02x\n", imm);
     return 3;
 }
 
@@ -23,6 +36,7 @@ int CPU::ASL_zp0()
     Bus::write8(imm, val);
     SetFlag(N_FLAG, (val >> 7) & 1);
     SetFlag(Z_FLAG, val == 0);
+    //printf("[6502]: asl $%02x\n", imm);
     return 5;
 }
 
@@ -32,6 +46,7 @@ int CPU::ORA_imm()
     a = a | val;
     SetFlag(N_FLAG, (a >> 7) & 1);
     SetFlag(Z_FLAG, a == 0);
+    //printf("ora #$%02x\n", val);
     return 2;
 }
 
@@ -41,6 +56,7 @@ int CPU::ASL_acc()
     a <<= 1;
     SetFlag(N_FLAG, (a >> 7) & 1);
     SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: asl a\n");
     return 2;
 }
 
@@ -100,6 +116,14 @@ int CPU::AND_zp0()
     return 0;
 }
 
+int CPU::PLP_imp()
+{
+    s++;
+    p = Bus::read8(0x0100 + s);
+    //printf("[6502]: plp\n");
+    return 4;
+}
+
 int CPU::AND_imm()
 {
     uint8_t imm = Bus::read8(pc++);
@@ -152,12 +176,14 @@ int CPU::AND_zpx()
     a = a & val;
     SetFlag(N_FLAG, (a >> 7) & 1);
     SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: and $%02x,x\n", imm);
     return 4;
 }
 
 int CPU::SEC_imp()
 {
     SetFlag(C_FLAG, 1);
+    //printf("[6502]: sec\n");
     return 2;
 }
 
@@ -169,6 +195,7 @@ int CPU::RTI_imp()
     pc = Bus::read8(0x100 + s);
     s++;
     pc |= Bus::read8(0x100 + s) << 8;
+    //printf("[6502]: rti\n");
     return 6;
 }
 
@@ -192,6 +219,7 @@ int CPU::LSR_zp0()
     Bus::write8(imm, val);
     SetFlag(N_FLAG, (val >> 7) & 1);
     SetFlag(Z_FLAG, val == 0);
+    //printf("[6502]: lsr $%02x\n", imm);
     return 5;
 }
 
@@ -293,6 +321,32 @@ int CPU::ADC_imm()
     return 3;
 }
 
+int CPU::ROR_acc()
+{
+    bool old_c = GetFlag(C_FLAG);
+    SetFlag(C_FLAG, a & 1);
+    a = (a >> 1) | (old_c << 7);
+    SetFlag(N_FLAG, (a >> 7) & 1);
+    SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: ror a\n");
+    return 2;
+}
+
+int CPU::ADC_abs()
+{
+    uint16_t addr = Bus::read16(pc);
+    pc += 2;
+    uint8_t val = Bus::read8(addr);
+    uint8_t result = a + val + GetFlag(C_FLAG);
+    SetFlag(C_FLAG, result < a);
+    SetFlag(Z_FLAG, (result == 0));
+    SetFlag(N_FLAG, (result >> 7) & 1);
+    SetFlag(V_FLAG, ((result >> 7) & 1) != ((a >> 7) & 1) && ((a >> 7) & 1) == ((val >> 7) & 1));
+    a = result;
+    //printf("[6502]: adc $%04x\n", addr);
+    return 3;
+}
+
 int CPU::SEI_imp()
 {
     SetFlag(I_FLAG, 1);
@@ -320,6 +374,7 @@ int CPU::STX_zp0()
 {
     uint8_t imm = Bus::read8(pc++);
     Bus::write8(imm, x);
+    //printf("[6502]: stx $%02x\n", imm);
     return 3;
 }
 
@@ -339,6 +394,15 @@ int CPU::TXA_imp()
     SetFlag(Z_FLAG, a == 0);
     //printf("[6502]: txa\n");
     return 2;
+}
+
+int CPU::STY_abs()
+{
+    uint16_t addr = Bus::read16(pc);
+    pc += 2;
+    //printf("[6502]: sty $%04x\n", addr);
+    Bus::write8(addr, y);
+    return 4;
 }
 
 int CPU::STA_abs()
@@ -396,6 +460,7 @@ int CPU::STA_zpx()
     uint8_t imm = Bus::read8(pc++);
     imm += x;
     Bus::write8(imm, a);
+    //printf("[6502]: sta $%02x,x\n", imm);
     return 4;
 }
 
@@ -415,6 +480,16 @@ int CPU::TXS_imp()
     SetFlag(Z_FLAG, s == 0);
     //printf("[6502]: txs\n");
     return 2;
+}
+
+int CPU::STA_abx()
+{
+    uint16_t addr = Bus::read16(pc);
+    pc += 2;
+    addr += x;
+    Bus::write8(addr, a);
+    //printf("[6502]: sta $%04x,x\n", addr);
+    return 5;
 }
 
 int CPU::LDY_imm()
@@ -558,6 +633,7 @@ int CPU::LDY_zpx()
     y = Bus::read8(imm);
     SetFlag(N_FLAG, (y >> 7) & 1);
     SetFlag(Z_FLAG, y == 0);
+    //printf("[6502]: ldy $%02x,x\n", imm);
     return 4;
 }
 
@@ -568,6 +644,7 @@ int CPU::LDA_zpx()
     a = Bus::read8(imm);
     SetFlag(N_FLAG, (a >> 7) & 1);
     SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: lda $%02x,x\n", imm);
     return 4;
 }
 
@@ -580,6 +657,7 @@ int CPU::DEC_zpx()
     SetFlag(N_FLAG, (val >> 7) & 1);
     SetFlag(Z_FLAG, val == 0);
     Bus::write8(imm, val);
+    //printf("[6502]: dec $%02x,x\n", imm);
     return 6;
 }
 
@@ -609,6 +687,18 @@ int CPU::LDA_abx()
     if ((addr & 0xff) != (pc & 0xff))
         return 5;
     return 4;
+}
+
+int CPU::CPY_zp0()
+{
+    uint8_t imm = Bus::read8(pc++);
+    //printf("[6502]: cpy $%02x\n", imm);
+    uint8_t data = Bus::read8(imm);
+    uint8_t result = y - imm;
+    SetFlag(C_FLAG, imm > y);
+    SetFlag(Z_FLAG, result == 0);
+    SetFlag(N_FLAG, (result >> 7) & 1);
+    return 3;
 }
 
 int CPU::DEC_zp0()
@@ -660,6 +750,7 @@ int CPU::DEC_abs()
     SetFlag(N_FLAG, (val >> 7) & 1);
     SetFlag(Z_FLAG, val == 0);
     Bus::write8(addr, val);
+    //printf("[6502]: dec $%04x\n", addr);
     return 6;
 }
 
@@ -701,7 +792,19 @@ int CPU::SBC_zp0()
     SetFlag(V_FLAG, (a ^ result) & (~val ^ result) & 0x80);
     a = result;
     SetFlag(Z_FLAG, a == 0);
+    //printf("[6502]: sbc $%02x\n", imm);
     return 3;
+}
+
+int CPU::INC_zp0()
+{
+    uint8_t addr = Bus::read8(pc++);
+    uint8_t val = Bus::read8(addr) + 1;
+    SetFlag(N_FLAG, (val >> 7) & 1);
+    SetFlag(Z_FLAG, val == 0);
+    Bus::write8(addr, val);
+    //printf("[6502]: inc $%02x\n", addr);
+    return 5;
 }
 
 int CPU::INX_imp()
@@ -709,6 +812,7 @@ int CPU::INX_imp()
     x = x + 1;
     SetFlag(Z_FLAG, x == 0);
     SetFlag(N_FLAG, (x >> 7) & 1);
+    //printf("[6502]: inx\n");
     return 2;
 }
 
@@ -720,6 +824,7 @@ int CPU::INC_abs()
     SetFlag(N_FLAG, (val >> 7) & 1);
     SetFlag(Z_FLAG, val == 0);
     Bus::write8(addr, val);
+    //printf("[6502]: inc $%04x\n", addr);
     return 6;
 }
 
@@ -752,6 +857,7 @@ CPU::CPU()
 
     pc = reset_addr;
 
+    opcodes[0x01] = std::bind(&CPU::ORA_idx, this);
     opcodes[0x05] = std::bind(&CPU::ORA_zp0, this);
     opcodes[0x06] = std::bind(&CPU::ASL_zp0, this);
     opcodes[0x09] = std::bind(&CPU::ORA_imm, this);
@@ -760,6 +866,7 @@ CPU::CPU()
     opcodes[0x18] = std::bind(&CPU::CLC_imp, this);
     opcodes[0x20] = std::bind(&CPU::JSR_abs, this);
     opcodes[0x25] = std::bind(&CPU::AND_zp0, this);
+    opcodes[0x28] = std::bind(&CPU::PLP_imp, this);
     opcodes[0x29] = std::bind(&CPU::AND_imm, this);
     opcodes[0x2A] = std::bind(&CPU::ROL_acc, this);
     opcodes[0x30] = std::bind(&CPU::BMI_rel, this);
@@ -777,12 +884,15 @@ CPU::CPU()
     opcodes[0x66] = std::bind(&CPU::ROR_zp0, this);
     opcodes[0x68] = std::bind(&CPU::PLA_imp, this);
     opcodes[0x69] = std::bind(&CPU::ADC_imm, this);
+    opcodes[0x6A] = std::bind(&CPU::ROR_acc, this);
+    opcodes[0x6D] = std::bind(&CPU::ADC_abs, this);
     opcodes[0x78] = std::bind(&CPU::SEI_imp, this);
     opcodes[0x84] = std::bind(&CPU::STY_ZP0, this);
     opcodes[0x85] = std::bind(&CPU::STA_ZP0, this);
     opcodes[0x86] = std::bind(&CPU::STX_zp0, this);
     opcodes[0x88] = std::bind(&CPU::DEY_imp, this);
     opcodes[0x8A] = std::bind(&CPU::TXA_imp, this);
+    opcodes[0x8C] = std::bind(&CPU::STY_abs, this);
     opcodes[0x8D] = std::bind(&CPU::STA_abs, this);
     opcodes[0x8E] = std::bind(&CPU::STX_abs, this);
     opcodes[0x90] = std::bind(&CPU::BCC_rel, this);
@@ -790,6 +900,7 @@ CPU::CPU()
     opcodes[0x95] = std::bind(&CPU::STA_zpx, this);
     opcodes[0x98] = std::bind(&CPU::TYA_imp, this);
     opcodes[0x9A] = std::bind(&CPU::TXS_imp, this);
+    opcodes[0x9D] = std::bind(&CPU::STA_abx, this);
     opcodes[0xA0] = std::bind(&CPU::LDY_imm, this);
     opcodes[0xA2] = std::bind(&CPU::LDX_imm, this);
     opcodes[0xA4] = std::bind(&CPU::LDY_zp0, this);
@@ -806,6 +917,7 @@ CPU::CPU()
     opcodes[0xB5] = std::bind(&CPU::LDA_zpx, this);
     opcodes[0xB9] = std::bind(&CPU::LDA_aby, this);
     opcodes[0xBD] = std::bind(&CPU::LDA_abx, this);
+    opcodes[0xC4] = std::bind(&CPU::CPY_zp0, this);
     opcodes[0xC6] = std::bind(&CPU::DEC_zp0, this);
     opcodes[0xC8] = std::bind(&CPU::INY_imp, this);
     opcodes[0xC9] = std::bind(&CPU::CMP_imm, this);
@@ -815,6 +927,7 @@ CPU::CPU()
     opcodes[0xD6] = std::bind(&CPU::DEC_zpx, this);
     opcodes[0xD8] = std::bind(&CPU::CLD_imp, this);
     opcodes[0xE5] = std::bind(&CPU::SBC_zp0, this);
+    opcodes[0xE6] = std::bind(&CPU::INC_zp0, this);
     opcodes[0xE8] = std::bind(&CPU::INX_imp, this);
     opcodes[0xEE] = std::bind(&CPU::INC_abs, this);
     opcodes[0xF0] = std::bind(&CPU::BEQ_rel, this);

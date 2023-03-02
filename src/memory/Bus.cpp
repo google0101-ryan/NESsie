@@ -66,6 +66,7 @@ void Bus::write8(uint16_t addr, uint8_t data)
     case 0x4014:
         PPU::write_oamdma(data);
         return;
+    case 0x4000 ... 0x4013:
     case 0x4015:
     case 0x4016:
     case 0x4017:
