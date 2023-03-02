@@ -57,7 +57,16 @@ void Cartridge::Load(std::string name)
     }
 }
 
+void Cartridge::Unload()
+{
+}
+
 uint8_t Cartridge::read8(uint16_t addr)
 {
     return mapper->read8(addr);
+}
+
+uint8_t Cartridge::read8_ppu(uint16_t addr)
+{
+    return mapper->read8_ppu(addr);
 }

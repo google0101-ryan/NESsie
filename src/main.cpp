@@ -1,6 +1,7 @@
 #include <src/memory/Bus.h>
 #include <src/cpu/cpu.h>
 #include <src/ppu/ppu.h>
+#include <src/memory/Cartridge.h>
 
 #include <cstdlib>
 
@@ -10,6 +11,7 @@ void e()
 {
     cpu->Dump();
     PPU::dump();
+    Cartridge::Unload();
 }
 
 int main()
@@ -23,6 +25,7 @@ int main()
     while (1)
     {
         int cycles_elapsed = cpu->clock();
+        PPU::clock(cycles_elapsed);
     }
 
     return 0;

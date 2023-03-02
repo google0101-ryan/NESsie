@@ -37,12 +37,22 @@ private:
     using Instr = std::function<int()>;
     std::unordered_map<uint8_t, Instr> opcodes;
 
+    int ORA_zp0(); // 0x05
+    int ASL_zp0(); // 0x06
+    int ORA_imm(); // 0x09
+    int ASL_acc(); // 0x0a
     int BPL_rel(); // 0x10
     int CLC_imp(); // 0x18
     int JSR_abs(); // 0x20
     int AND_zp0(); // 0x25
     int AND_imm(); // 0x29
+    int ROL_acc(); // 0x2a
+    int BMI_rel(); // 0x30
+    int AND_zpx(); // 0x35
+    int SEC_imp(); // 0x38
+    int RTI_imp(); // 0x40
     int EOR_zp0(); // 0x45
+    int LSR_zp0(); // 0x46
     int PHA_imp(); // 0x48
     int EOR_imm(); // 0x49
     int LSR_imp(); // 0x4a
@@ -55,31 +65,49 @@ private:
     int SEI_imp(); // 0x78
     int STY_ZP0(); // 0x84
     int STA_ZP0(); // 0x85
+    int STX_zp0(); // 0x86
     int DEY_imp(); // 0x88
     int TXA_imp(); // 0x8a
     int STA_abs(); // 0x8d
+    int STX_abs(); // 0x8e
+    int BCC_rel(); // 0x90
     int STA_idy(); // 0x91
+    int STA_zpx(); // 0x95
     int TYA_imp(); // 0x98
     int TXS_imp(); // 0x9a
     int LDY_imm(); // 0xa0
     int LDX_imm(); // 0xa2
+    int LDY_zp0(); // 0xa4
     int LDA_zp0(); // 0xa5
     int LDX_zp0(); // 0xa6
     int TAY_imp(); // 0xa8
     int LDA_imm(); // 0xa9
     int TAX_imp(); // 0xaa
     int LDA_abs(); // 0xad
+    int LDX_abs(); // 0xae
+    int BCS_rel(); // 0xf0
     int LDA_iny(); // 0xb1
+    int LDY_zpx(); // 0xb4
+    int LDA_zpx(); // 0xb5
+    int DEC_zpx(); // 0xb6
+    int LDA_aby(); // 0xb9
+    int LDA_abx(); // 0xbd
     int DEC_zp0(); // 0xc6
     int INY_imp(); // 0xc8
     int CMP_imm(); // 0xc9
     int DEX_imp(); // 0xca
+    int DEC_abs(); // 0xce
     int BNE_rel(); // 0xd0
     int CLD_imp(); // 0xd8
+    int SBC_zp0(); // 0xe5
+    int INX_imp(); // 0xe8
+    int INC_abs(); // 0xee
     int BEQ_rel(); // 0xf0
 public:
     CPU();
     void Dump();
 
     int clock();
+    void nmi();
+    void SuspendCpu(bool suspended);
 };

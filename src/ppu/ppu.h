@@ -13,6 +13,8 @@ namespace PPU
     void write_scroll(uint8_t data);
     void write_ppuaddr(uint8_t data);
     void write_vram(uint8_t data);
+    void write_oamaddr(uint8_t data);
+    void write_oamdma(uint8_t data);
 
     uint8_t read_ppustatus();
 };

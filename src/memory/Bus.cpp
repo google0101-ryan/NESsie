@@ -21,6 +21,9 @@ uint8_t Bus::read8(uint16_t addr)
     {
     case 0x2002:
         return PPU::read_ppustatus();
+    case 0x4016:
+    case 0x4017:
+        return 0;
     }
     
     printf("[Bus]: Read from unknown address 0x%04x\n", addr);
@@ -48,6 +51,9 @@ void Bus::write8(uint16_t addr, uint8_t data)
     case 0x2001:
         PPU::write_ppumask(addr, data);
         return;
+    case 0x2003:
+        PPU::write_oamaddr(data);
+        return;
     case 0x2005:
         PPU::write_scroll(data);
         return;
@@ -56,6 +62,13 @@ void Bus::write8(uint16_t addr, uint8_t data)
         return;
     case 0x2007:
         PPU::write_vram(data);
+        return;
+    case 0x4014:
+        PPU::write_oamdma(data);
+        return;
+    case 0x4015:
+    case 0x4016:
+    case 0x4017:
         return;
     }
 
